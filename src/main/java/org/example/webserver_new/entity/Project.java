@@ -35,7 +35,7 @@ public class Project
     private String progressMethod;
 
     @Convert(converter = StringListConverter.class)
-    @Column(name = "techStack", nullable = false)
+    @Column(name = "tech_stack", nullable = false)
     private List<String> techStack;
     private LocalDateTime createdAt;
 
