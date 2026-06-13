@@ -8,10 +8,12 @@ import org.example.webserver_new.dto.api.ApiDtos.ApplicationRequest;
 import org.example.webserver_new.dto.api.ApiDtos.ApplicationResponse;
 import org.example.webserver_new.dto.api.ApiDtos.ProjectResponse;
 import org.example.webserver_new.entity.Application;
+import org.example.webserver_new.entity.DevProfile;
 import org.example.webserver_new.entity.Project;
 import org.example.webserver_new.entity.Role;
 import org.example.webserver_new.entity.User;
 import org.example.webserver_new.repository.ApplicationRepository;
+import org.example.webserver_new.repository.DevProfileRepository;
 import org.example.webserver_new.repository.ProjectRepository;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +33,7 @@ public class ProjectApiService {
 
     private final ProjectRepository projectRepository;
     private final ApplicationRepository applicationRepository;
+    private final DevProfileRepository devProfileRepository;
     private final AuthApiService authApiService;
 
     public Map<String, Object> projects(String employmentType, String status, String sort, int page, int size) {
@@ -42,7 +45,7 @@ public class ProjectApiService {
                 .filter(project -> employmentType == null || employmentType.equals(project.getEmploymentType()))
                 .filter(project -> status == null || status.equals(project.getStatus()))
                 .sorted(projectComparator(sort))
-                .map(project -> ProjectResponse.from(project, applicationRepository.countByProjectId(project.getId())))
+                .map(project -> ProjectResponse.from(project, applicationRepository.countByProject_Id(project.getId())))
                 .toList();
 
         return paged(projects, safePage, safeSize);
@@ -52,7 +55,7 @@ public class ProjectApiService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_ENTITY));
 
-        return ProjectResponse.from(project, applicationRepository.countByProjectId(project.getId()));
+        return ProjectResponse.from(project, applicationRepository.countByProject_Id(project.getId()));
     }
 
     public ApplicationResponse apply(Long projectId, HttpServletRequest request) {
@@ -70,19 +73,20 @@ public class ProjectApiService {
     ) {
         User user = authApiService.requiredRole(request, Role.DEVELOPER);
 
-        if (!projectRepository.existsById(projectId)) {
-            throw new ApiException(ErrorCode.NOT_FOUND_ENTITY);
-        }
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_ENTITY));
+        DevProfile developer = devProfileRepository.findByUser_Id(user.getId())
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_ENTITY));
 
         if (containsContactInfo(applicationRequest.contents())) {
             throw new ApiException(ErrorCode.INVALID_VALUE);
         }
 
-        Application application = applicationRepository.findByProjectIdAndDeveloperId(projectId, user.getId())
+        Application application = applicationRepository.findByProject_IdAndDeveloper_Id(projectId, developer.getId())
                 .orElseGet(() -> {
                     Application newApplication = new Application();
-                    newApplication.setProjectId(projectId);
-                    newApplication.setDeveloperId(user.getId());
+                    newApplication.setProject(project);
+                    newApplication.setDeveloper(developer);
                     newApplication.setCreatedAt(LocalDateTime.now());
                     return newApplication;
                 });
@@ -102,7 +106,7 @@ public class ProjectApiService {
         return switch (sort) {
             case "endDate" -> Comparator.comparing(Project::getEndDate, Comparator.nullsLast(Comparator.naturalOrder()));
             case "budget" -> Comparator.comparing(Project::getBudget, Comparator.nullsLast(Comparator.reverseOrder()));
-            case "applicantCount" -> Comparator.comparing(project -> applicationRepository.countByProjectId(project.getId()), Comparator.reverseOrder());
+            case "applicantCount" -> Comparator.comparing(project -> applicationRepository.countByProject_Id(project.getId()), Comparator.reverseOrder());
             default -> Comparator.comparing(Project::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder()));
         };
     }

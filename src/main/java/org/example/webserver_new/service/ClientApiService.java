@@ -31,7 +31,7 @@ public class ClientApiService {
         User user = authApiService.requiredRole(httpRequest, Role.CLIENT);
 
         Project project = new Project();
-        project.setClientId(user.getId());
+        project.setClient(user);
         project.setTitle(request.title());
         project.setEndDate(request.endDate());
         project.setEmploymentType(request.employmentType());
@@ -51,9 +51,9 @@ public class ClientApiService {
     public List<ProjectResponse> projects(HttpServletRequest request) {
         User user = authApiService.requiredRole(request, Role.CLIENT);
 
-        return projectRepository.findByClientId(user.getId())
+        return projectRepository.findByClient_Id(user.getId())
                 .stream()
-                .map(project -> ProjectResponse.from(project, applicationRepository.countByProjectId(project.getId())))
+                .map(project -> ProjectResponse.from(project, applicationRepository.countByProject_Id(project.getId())))
                 .toList();
     }
 
@@ -61,15 +61,15 @@ public class ClientApiService {
         User user = authApiService.requiredRole(request, Role.CLIENT);
 
         return projectRepository.findById(projectId)
-                .filter(project -> user.getId().equals(project.getClientId()))
-                .map(project -> ProjectResponse.from(project, applicationRepository.countByProjectId(project.getId())))
+                .filter(project -> user.getId().equals(project.getClient().getId()))
+                .map(project -> ProjectResponse.from(project, applicationRepository.countByProject_Id(project.getId())))
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_ENTITY));
     }
 
     public Map<String, Object> projectApplications(Long projectId, int page, int size, HttpServletRequest request) {
         User user = authApiService.requiredRole(request, Role.CLIENT);
         boolean ownsProject = projectRepository.findById(projectId)
-                .map(project -> user.getId().equals(project.getClientId()))
+                .map(project -> user.getId().equals(project.getClient().getId()))
                 .orElse(false);
 
         if (!ownsProject) {
@@ -78,7 +78,7 @@ public class ClientApiService {
 
         int safePage = Math.max(page, 0);
         int safeSize = size <= 0 ? 2 : size;
-        List<ApplicationResponse> applications = applicationRepository.findByProjectId(projectId)
+        List<ApplicationResponse> applications = applicationRepository.findByProject_Id(projectId)
                 .stream()
                 .map(ApplicationResponse::from)
                 .toList();
@@ -90,9 +90,7 @@ public class ClientApiService {
         User user = authApiService.requiredRole(request, Role.CLIENT);
 
         return applicationRepository.findById(applicationId)
-                .filter(application -> projectRepository.findById(application.getProjectId())
-                        .map(project -> user.getId().equals(project.getClientId()))
-                        .orElse(false))
+                .filter(application -> user.getId().equals(application.getProject().getClient().getId()))
                 .map(ApplicationResponse::from)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_ENTITY));
     }

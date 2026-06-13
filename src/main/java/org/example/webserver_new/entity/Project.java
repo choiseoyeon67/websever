@@ -1,13 +1,6 @@
 package org.example.webserver_new.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
+import jakarta.persistence.*;
 import org.example.webserver_new.entity.converter.StringListConverter;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,7 +19,9 @@ public class Project
     @Column(name = "project_id")
     private Long id;
 
-    private Long clientId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id", nullable = false)
+    private User client;
 
     private String title;
     private LocalDate endDate;

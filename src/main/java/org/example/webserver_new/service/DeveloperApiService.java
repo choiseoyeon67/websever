@@ -14,7 +14,6 @@ import org.example.webserver_new.entity.Role;
 import org.example.webserver_new.entity.User;
 import org.example.webserver_new.repository.ApplicationRepository;
 import org.example.webserver_new.repository.DevProfileRepository;
-import org.example.webserver_new.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,7 +32,6 @@ public class DeveloperApiService {
 
     private final DevProfileRepository devProfileRepository;
     private final ApplicationRepository applicationRepository;
-    private final ProjectRepository projectRepository;
     private final AuthApiService authApiService;
 
     @Value("${app.upload.profile-dir:uploads/profile}")
@@ -41,7 +39,7 @@ public class DeveloperApiService {
 
     public ProfileResponse profile(HttpServletRequest request) {
         User user = authApiService.requiredRole(request, Role.DEVELOPER);
-        return ProfileResponse.from(findOrCreateProfile(user.getId()));
+        return ProfileResponse.from(findOrCreateProfile(user));
     }
 
     public ProfileResponse updateProfile(ProfileRequest request, HttpServletRequest httpRequest) {
@@ -52,7 +50,7 @@ public class DeveloperApiService {
             throw new ApiException(ErrorCode.HAS_TOO_MANY_TAG);
         }
 
-        DevProfile profile = findOrCreateProfile(user.getId());
+        DevProfile profile = findOrCreateProfile(user);
         profile.setDevType(request.devType());
         profile.setIsActive(request.isActive());
         profile.setIsResident(request.isResident());
@@ -67,7 +65,7 @@ public class DeveloperApiService {
 
     public ProfileResponse uploadImage(MultipartFile image, HttpServletRequest request) throws IOException {
         User user = authApiService.requiredRole(request, Role.DEVELOPER);
-        DevProfile profile = findOrCreateProfile(user.getId());
+        DevProfile profile = findOrCreateProfile(user);
         Path uploadDir = Path.of(profileUploadDir).toAbsolutePath().normalize();
         Files.createDirectories(uploadDir);
 
@@ -86,11 +84,13 @@ public class DeveloperApiService {
     public List<DeveloperApplicationResponse> applications(HttpServletRequest request) {
         User user = authApiService.requiredRole(request, Role.DEVELOPER);
 
-        return applicationRepository.findByDeveloperId(user.getId())
+        DevProfile developer = findOrCreateProfile(user);
+
+        return applicationRepository.findByDeveloper_Id(developer.getId())
                 .stream()
                 .map(application -> {
-                    Project project = projectRepository.findById(application.getProjectId()).orElse(null);
-                    long applicantCount = applicationRepository.countByProjectId(application.getProjectId());
+                    Project project = application.getProject();
+                    long applicantCount = applicationRepository.countByProject_Id(project.getId());
                     return DeveloperApplicationResponse.from(application, project, applicantCount);
                 })
                 .toList();
@@ -100,16 +100,16 @@ public class DeveloperApiService {
         User user = authApiService.requiredRole(request, Role.DEVELOPER);
 
         return applicationRepository.findById(applicationId)
-                .filter(application -> user.getId().equals(application.getDeveloperId()))
+                .filter(application -> user.getId().equals(application.getDeveloper().getUser().getId()))
                 .map(ApplicationResponse::from)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_ENTITY));
     }
 
-    private DevProfile findOrCreateProfile(Long userId) {
-        return devProfileRepository.findByUserId(userId)
+    private DevProfile findOrCreateProfile(User user) {
+        return devProfileRepository.findByUser_Id(user.getId())
                 .orElseGet(() -> {
                     DevProfile profile = new DevProfile();
-                    profile.setUserId(userId);
+                    profile.setUser(user);
                     return devProfileRepository.save(profile);
                 });
     }

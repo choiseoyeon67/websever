@@ -14,8 +14,11 @@ public class DevProfile
     @Column(name = "profile_id")
     private Long id;
 
-    private Long userId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
 
+    private String imagePath;
     private String devType;
     private Boolean isActive;
     private Boolean isResident;

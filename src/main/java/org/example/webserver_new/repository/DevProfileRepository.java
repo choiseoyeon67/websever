@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface DevProfileRepository extends JpaRepository<DevProfile, Long> {
 
-    Optional<DevProfile> findByUserId(Long userId);
+    Optional<DevProfile> findByUser_Id(Long userId);
 }

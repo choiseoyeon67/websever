@@ -8,11 +8,11 @@ import java.util.Optional;
 
 public interface ApplicationRepository extends JpaRepository<Application, Long> {
 
-    List<Application> findByDeveloperId(Long developerId);
+    List<Application> findByDeveloper_Id(Long developerId);
 
-    List<Application> findByProjectId(Long projectId);
+    List<Application> findByProject_Id(Long projectId);
 
-    Optional<Application> findByProjectIdAndDeveloperId(Long projectId, Long developerId);
+    Optional<Application> findByProject_IdAndDeveloper_Id(Long projectId, Long developerId);
 
-    long countByProjectId(Long projectId);
+    long countByProject_Id(Long projectId);
 }

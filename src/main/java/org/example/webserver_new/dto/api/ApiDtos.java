@@ -71,7 +71,7 @@ public final class ApiDtos {
 
             return new ProjectResponse(
                     project.getId(),
-                    project.getClientId(),
+                    project.getClient().getId(),
                     project.getTitle(),
                     project.getEndDate(),
                     project.getEmploymentType(),
@@ -122,7 +122,7 @@ public final class ApiDtos {
 
             return new ProfileResponse(
                     profile.getId(),
-                    profile.getUserId(),
+                    profile.getUser().getId(),
                     profile.getDevType(),
                     profile.getIsActive(),
                     profile.getIsResident(),
@@ -163,8 +163,8 @@ public final class ApiDtos {
         public static ApplicationResponse from(Application application) {
             return new ApplicationResponse(
                     application.getId(),
-                    application.getProjectId(),
-                    application.getDeveloperId(),
+                    application.getProject().getId(),
+                    application.getDeveloper().getId(),
                     application.getWorkDuration(),
                     application.getAppliedBudget(),
                     application.getTechRole(),
@@ -193,7 +193,7 @@ public final class ApiDtos {
         ) {
             return new DeveloperApplicationResponse(
                     application.getId(),
-                    application.getProjectId(),
+                    application.getProject().getId(),
                     project == null ? null : project.getTitle(),
                     application.getAppliedBudget() != null
                             ? application.getAppliedBudget()
