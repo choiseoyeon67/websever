@@ -20,7 +20,7 @@ public class AuthApiService {
     private final LoginService loginService;
 
     public UserResponse login(LoginRequest request, HttpServletRequest httpRequest) {
-        User loginUser = loginService.login(request.username(), request.password());
+        User loginUser = loginService.login(request.email(), request.password());
 
         if (loginUser == null) {
             throw new ApiException(ErrorCode.LOGIN_FAIL);

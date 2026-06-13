@@ -11,8 +11,8 @@ public class LoginService
 {
     private final MemberRepository memberRepository;
 
-    public User login(String loginId, String password) {
-        User member = memberRepository.findByEmail(loginId)
+    public User login(String email, String password) {
+        User member = memberRepository.findByEmail(email)
                 .orElse(null);
 
         if (member == null)

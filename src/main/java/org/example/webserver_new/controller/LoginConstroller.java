@@ -25,7 +25,7 @@ public final class LoginConstroller
     @PostMapping("/login")
     public String login(@Validated @ModelAttribute LoginForm loginform, BindingResult bindingResult, HttpServletRequest request)
     {
-        User loginMember = loginService.login(loginform.getLoginId(), loginform.getPassword());
+        User loginMember = loginService.login(loginform.getEmail(), loginform.getPassword());
 
         if (loginMember == null)
         {

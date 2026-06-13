@@ -15,10 +15,7 @@ public final class ApiDtos {
     private ApiDtos() {
     }
 
-    public record LoginRequest(String loginId, String email, String password) {
-        public String username() {
-            return loginId != null ? loginId : email;
-        }
+    public record LoginRequest(String email, String password) {
     }
 
     public record UserResponse(Long id, String email, String name, Role role) {
