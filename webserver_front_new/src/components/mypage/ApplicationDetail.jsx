@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/axios';
-import { parsePositionDetails, summarizePositions } from '../../utils/applicationPositions';
 
 function ApplicationDetail({ applicationId, projectId, onClose }) {
   const [detail, setDetail] = useState(null); 
@@ -69,9 +68,6 @@ function ApplicationDetail({ applicationId, projectId, onClose }) {
     const date = new Date(dateString);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   };
-  const isSangju = project.employmentType === '상주';
-  const positions = parsePositionDetails(detail.positionDetails);
-  const positionSummary = summarizePositions(positions);
 
   // ----------------------------------------------------
   // 📸 [분기 1] 나의 제안서 단독 상세보기 화면 (이미지 UI 맞춤 변환)
@@ -101,86 +97,59 @@ function ApplicationDetail({ applicationId, projectId, onClose }) {
 
         {/* 2. 제안 조건 6분할 격자 영역 (사진 레이아웃 1:1 매핑) */}
         <div className="grid grid-cols-2 gap-3 mb-6">
-          {isSangju ? (
-            <>
-              {positions.length > 0 ? (
-                <div className="col-span-2 border border-slate-100 rounded-xl overflow-hidden">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 text-gray-400">
-                      <tr>
-                        <th className="p-3">기술 구분</th>
-                        <th className="p-3">연차 구분</th>
-                        <th className="p-3">인원 수</th>
-                        <th className="p-3">임금</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {positions.map((position, index) => (
-                        <tr key={index} className="border-t border-slate-100">
-                          <td className="p-3 font-semibold">{position.techRole || '-'}</td>
-                          <td className="p-3">{position.experiencedLevel || '-'}</td>
-                          <td className="p-3">{position.memberCount ? `${position.memberCount}명` : '-'}</td>
-                          <td className="p-3">{position.monthlySalary ? `${position.monthlySalary.toLocaleString()}만원` : '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <>
-                  <div className="bg-slate-50/60 border border-slate-100/80 rounded-xl p-4 text-center">
-                    <div className="text-xs text-gray-400 flex items-center justify-center gap-1.5 mb-1">
-                      <span>💼</span> 담당 역할
-                    </div>
-                    <div className="text-base font-bold text-gray-800">{detail.techRole || '-'}</div>
-                  </div>
-                  <div className="bg-slate-50/60 border border-slate-100/80 rounded-xl p-4 text-center">
-                    <div className="text-xs text-gray-400 flex items-center justify-center gap-1.5 mb-1">
-                      <span>🏅</span> 숙련도 등급
-                    </div>
-                    <div className="text-base font-bold text-gray-800">{detail.experiencedLevel || detail.experienceLevel || '-'}</div>
-                  </div>
-                </>
-              )}
-              <div className="bg-slate-50/60 border border-slate-100/80 rounded-xl p-4 text-center">
-                <div className="text-xs text-gray-400 flex items-center justify-center gap-1.5 mb-1">
-                  <span>💰</span> 희망 월 급여
-                </div>
-                <div className="text-base font-bold text-gray-800">
-                  {(positionSummary.monthlySalary || detail.monthlySalary) ? `${(positionSummary.monthlySalary || detail.monthlySalary).toLocaleString()}만원` : '-'}
-                </div>
-              </div>
-              <div className="bg-slate-50/60 border border-slate-100/80 rounded-xl p-4 text-center">
-                <div className="text-xs text-gray-400 flex items-center justify-center gap-1.5 mb-1">
-                  <span>👥</span> 참여 인원
-                </div>
-                <div className="text-base font-bold text-gray-800">{(positionSummary.memberCount || detail.memberCount) ? `${positionSummary.memberCount || detail.memberCount}명` : '-'}</div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="bg-slate-50/60 border border-slate-100/80 rounded-xl p-4 text-center">
-                <div className="text-xs text-gray-400 flex items-center justify-center gap-1.5 mb-1">
-                  <span>💵</span> 제안 금액
-                </div>
-                <div className="text-base font-bold text-orange-500">
-                  {detail.appliedBudget ? `${detail.appliedBudget.toLocaleString()}만원` : '-'}
-                </div>
-              </div>
-              <div className="bg-slate-50/60 border border-slate-100/80 rounded-xl p-4 text-center">
-                <div className="text-xs text-gray-400 flex items-center justify-center gap-1.5 mb-1">
-                  <span>⏳</span> 작업 기간
-                </div>
-                <div className="text-base font-bold text-gray-800">{detail.workDuration ? `${detail.workDuration}일` : '-'}</div>
-              </div>
-              <div className="bg-slate-50/60 border border-slate-100/80 rounded-xl p-4 text-center">
-                <div className="text-xs text-gray-400 flex items-center justify-center gap-1.5 mb-1">
-                  <span>👥</span> 참여 인원
-                </div>
-                <div className="text-base font-bold text-gray-800">{detail.memberCount ? `${detail.memberCount}명` : '1명'}</div>
-              </div>
-            </>
-          )}
+          
+          {/* 담당 역할 */}
+          <div className="bg-slate-50/60 border border-slate-100/80 rounded-xl p-4 text-center">
+            <div className="text-xs text-gray-400 flex items-center justify-center gap-1.5 mb-1">
+              <span>💼</span> 담당 역할
+            </div>
+            <div className="text-base font-bold text-gray-800">{detail.techRole || '미지정'}</div>
+          </div>
+
+          {/* 숙련도 등급 */}
+          <div className="bg-slate-50/60 border border-slate-100/80 rounded-xl p-4 text-center">
+            <div className="text-xs text-gray-400 flex items-center justify-center gap-1.5 mb-1">
+              <span>🏅</span> 숙련도 등급
+            </div>
+            <div className="text-base font-bold text-gray-800">{detail.experiencedLevel || detail.experienceLevel || '미입력'}</div>
+          </div>
+
+          {/* 희망 총 예산 */}
+          <div className="bg-slate-50/60 border border-slate-100/80 rounded-xl p-4 text-center">
+            <div className="text-xs text-gray-400 flex items-center justify-center gap-1.5 mb-1">
+              <span>💵</span> 희망 총 예산
+            </div>
+            <div className="text-base font-bold text-orange-500">
+              {detail.appliedBudget ? `${detail.appliedBudget.toLocaleString()}원` : '협의'}
+            </div>
+          </div>
+
+          {/* 희망 월 급여 */}
+          <div className="bg-slate-50/60 border border-slate-100/80 rounded-xl p-4 text-center">
+            <div className="text-xs text-gray-400 flex items-center justify-center gap-1.5 mb-1">
+              <span>💰</span> 희망 월 급여
+            </div>
+            <div className="text-base font-bold text-gray-800">
+              {detail.monthlySalary ? `${detail.monthlySalary.toLocaleString()}원` : '협의'}
+            </div>
+          </div>
+
+          {/* 투입 가능 기간 */}
+          <div className="bg-slate-50/60 border border-slate-100/80 rounded-xl p-4 text-center">
+            <div className="text-xs text-gray-400 flex items-center justify-center gap-1.5 mb-1">
+              <span>⏳</span> 투입 가능 기간
+            </div>
+            <div className="text-base font-bold text-gray-800">{detail.workDuration ? `${detail.workDuration}일` : '-'}</div>
+          </div>
+
+          {/* 참여 인원 */}
+          <div className="bg-slate-50/60 border border-slate-100/80 rounded-xl p-4 text-center">
+            <div className="text-xs text-gray-400 flex items-center justify-center gap-1.5 mb-1">
+              <span>👥</span> 참여 인원
+            </div>
+            <div className="text-base font-bold text-gray-800">{detail.memberCount ? `${detail.memberCount}명` : '1명'}</div>
+          </div>
+
         </div>
 
         {/* 3. 지원 내역 및 소개 내용 본문 박스 */}

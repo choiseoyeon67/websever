@@ -9,11 +9,6 @@ function ApplicantList({ project }) {
   const [hasMore, setHasMore] = useState(false); // 🎯 초기값을 false로 변경
   const [selectedApplicantId, setSelectedApplicantId] = useState(null);
 
-  const formatMoney = (value) => {
-    if (value == null) return '-'
-    return `${value.toLocaleString()}만원`
-  }
-
   // 프로젝트 상세 및 지원자 목록 초기 로드
   useEffect(() => {
     const fetchAllData = async () => {
@@ -97,10 +92,10 @@ const fetchApplications = async (pageNum) => {
               {applicants.map((app, index) => (
                 <tr key={app.id} className='border-t'>
                   <td className='p-3'>{index + 1}</td>
-                  <td className='p-3'>{formatMoney(app.appliedBudget ?? app.monthlySalary)}</td>
-                  <td className='p-3'>{app.createdAt?.split('T')[0]}</td>
+                  <td className='p-3'>{app.appliedBudget?.toLocaleString()}만원</td>
+                  <td className='p-3'>{app.appliedAt?.split('T')[0]}</td>
                   <td className='p-3'>
-                    <button onClick={() => setSelectedApplicantId(app.id)} className='text-blue-600 underline'>상세보기</button>
+                    <button onClick={() => setSelectedApplicantId(app.id)} className='text-blue-600 underline'>보기</button>
                   </td>
                 </tr>
               ))}

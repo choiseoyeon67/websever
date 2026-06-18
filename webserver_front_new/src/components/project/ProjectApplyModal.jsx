@@ -2,13 +2,6 @@ import { useState, useEffect } from 'react'
 import api from '../../api/axios'
 
 function ProjectApplyModal({ projectId, employmentType, onClose, onApplySuccess }) {
-  const techRoleOptions = ['개발자', '디자이너', '기획자', '기타 포지션']
-  const experiencedLevelOptions = [
-    '초급(1년이상 ~ 5년미만)',
-    '중급(5년이상 ~ 10년미만)',
-    '고급(10년이상)'
-  ]
-
   const [form, setForm] = useState({
     techRole: '',
     experiencedLevel: '',
@@ -18,9 +11,6 @@ function ProjectApplyModal({ projectId, employmentType, onClose, onApplySuccess 
     appliedBudget: '',
     contents: '',
   })
-  const [positionRows, setPositionRows] = useState([
-    { techRole: '', experiencedLevel: '', memberCount: '', monthlySalary: '' }
-  ])
 
   const [projectInfo, setProjectInfo] = useState(null) // 🎯 프로젝트 상세 정보 상태
   const [loading, setLoading] = useState(false)
@@ -44,26 +34,6 @@ function ProjectApplyModal({ projectId, employmentType, onClose, onApplySuccess 
     setForm(prev => ({ ...prev, [name]: value }))
   }
 
-  const handlePositionChange = (index, name, value) => {
-    setPositionRows(prev => prev.map((row, rowIndex) => (
-      rowIndex === index ? { ...row, [name]: value } : row
-    )))
-  }
-
-  const addPositionRow = () => {
-    setPositionRows(prev => [
-      ...prev,
-      { techRole: '', experiencedLevel: '', memberCount: '', monthlySalary: '' }
-    ])
-  }
-
-  const removePositionRow = (index) => {
-    setPositionRows(prev => prev.length === 1
-      ? prev
-      : prev.filter((_, rowIndex) => rowIndex !== index)
-    )
-  }
-
   const hasContactInfo = (text) => {
     const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
     const phoneRegex = /(01[016789])[-. ]?(\d{3,4})[-. ]?(\d{4})/;
@@ -76,24 +46,11 @@ function ProjectApplyModal({ projectId, employmentType, onClose, onApplySuccess 
       return
     }
 
-    const normalizedPositions = positionRows.map(row => ({
-      techRole: row.techRole,
-      experiencedLevel: row.experiencedLevel,
-      memberCount: parseInt(row.memberCount) || 0,
-      monthlySalary: parseInt(row.monthlySalary) || 0,
-    }))
-    const filledPositions = normalizedPositions.filter(row =>
-      row.techRole || row.experiencedLevel || row.memberCount || row.monthlySalary
-    )
-    const totalMemberCount = filledPositions.reduce((sum, row) => sum + row.memberCount, 0)
-    const totalMonthlySalary = filledPositions.reduce((sum, row) => sum + row.monthlySalary, 0)
-
     const payload = isSangju ? {
-      techRole: filledPositions.map(row => row.techRole).filter(Boolean).join(', '),
-      experiencedLevel: filledPositions.map(row => row.experiencedLevel).filter(Boolean).join(', '),
-      memberCount: totalMemberCount || 1,
-      monthlySalary: totalMonthlySalary,
-      positionDetails: JSON.stringify(filledPositions),
+      techRole: form.techRole,
+      experiencedLevel: form.experiencedLevel,
+      memberCount: parseInt(form.memberCount) || 1,
+      monthlySalary: parseInt(form.monthlySalary) || 0,
       contents: form.contents,
       workDuration: null,
       appliedBudget: null
@@ -104,8 +61,7 @@ function ProjectApplyModal({ projectId, employmentType, onClose, onApplySuccess 
       contents: form.contents,
       techRole: null,
       experiencedLevel: null,
-      monthlySalary: null,
-      positionDetails: null
+      monthlySalary: null
     }
 
     try {
@@ -124,7 +80,7 @@ function ProjectApplyModal({ projectId, employmentType, onClose, onApplySuccess 
 
   return (
     <div className='fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4'>
-      <div className={`bg-white rounded-xl p-6 w-full ${isSangju ? 'max-w-5xl' : 'max-w-lg'} shadow-xl relative max-h-[90vh] overflow-y-auto`}>
+      <div className='bg-white rounded-xl p-6 w-full max-w-lg shadow-xl relative max-h-[90vh] overflow-y-auto'>
         <button onClick={onClose} className='absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold'>✕</button>
         <h2 className='text-xl font-bold mb-4 border-b pb-2'>{employmentType} 프로젝트 지원</h2>
 
@@ -155,37 +111,13 @@ function ProjectApplyModal({ projectId, employmentType, onClose, onApplySuccess 
         <div className="space-y-4">
           {isSangju ? (
             <>
-              <div className="space-y-3">
-                {positionRows.map((row, index) => (
-                  <div key={index} className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2 items-center">
-                    <select value={row.techRole} onChange={(e) => handlePositionChange(index, 'techRole', e.target.value)} className='border p-2 w-full rounded bg-white'>
-                      <option value="">기술 구분</option>
-                      {techRoleOptions.map(option => (
-                        <option key={option} value={option}>{option}</option>
-                      ))}
-                    </select>
-                    <select value={row.experiencedLevel} onChange={(e) => handlePositionChange(index, 'experiencedLevel', e.target.value)} className='border p-2 w-full rounded bg-white'>
-                      <option value="">연차 구분</option>
-                      {experiencedLevelOptions.map(option => (
-                        <option key={option} value={option}>{option}</option>
-                      ))}
-                    </select>
-                    <div className="flex items-center border rounded overflow-hidden">
-                      <input type='number' placeholder="인원수" value={row.memberCount} onChange={(e) => handlePositionChange(index, 'memberCount', e.target.value)} className='p-2 w-full outline-none' />
-                      <span className="px-2 text-sm text-gray-500">명</span>
-                    </div>
-                    <div className="flex items-center border rounded overflow-hidden">
-                      <input type='number' placeholder="임금" value={row.monthlySalary} onChange={(e) => handlePositionChange(index, 'monthlySalary', e.target.value)} className='p-2 w-full outline-none' />
-                      <span className="px-2 text-sm text-gray-500">만원</span>
-                    </div>
-                    <button type="button" onClick={() => removePositionRow(index)} className="w-9 h-9 rounded-full bg-gray-100 text-lg font-bold hover:bg-gray-200">
-                      ×
-                    </button>
-                  </div>
-                ))}
-                <button type="button" onClick={addPositionRow} className="border border-gray-400 w-full py-2 rounded font-bold hover:bg-gray-50">
-                  + 추가
-                </button>
+              <div className="grid grid-cols-2 gap-4">
+                <input name='techRole' placeholder="기술 구분" value={form.techRole} onChange={handleChange} className='border p-2 w-full rounded' />
+                <input name='experiencedLevel' placeholder="연차 구분" value={form.experiencedLevel} onChange={handleChange} className='border p-2 w-full rounded' />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <input type='number' name='memberCount' placeholder="인원수" value={form.memberCount} onChange={handleChange} className='border p-2 w-full rounded' />
+                <input type='number' name='monthlySalary' placeholder="월 임금(만원)" value={form.monthlySalary} onChange={handleChange} className='border p-2 w-full rounded' />
               </div>
             </>
           ) : (

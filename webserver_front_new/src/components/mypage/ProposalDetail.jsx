@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/axios';
-import { parsePositionDetails, summarizePositions } from '../../utils/applicationPositions';
 
 function ProposalDetail({ applicationId, onClose }) {
   const [proposal, setProposal] = useState(null);
@@ -49,10 +48,6 @@ function ProposalDetail({ applicationId, onClose }) {
   if (errorMsg) return <div className="p-10 text-center text-red-500 text-sm font-semibold">⚠️ {errorMsg}<br/><button onClick={fetchProposalData} className="mt-4 px-3 py-1 bg-gray-100 text-gray-700 rounded border">다시 시ve</button></div>;
   if (!proposal) return <div className="p-10 text-center text-gray-400 text-sm">정보를 표시할 수 없습니다.</div>;
 
-  const isSangju = proposal.monthlySalary != null || proposal.techRole || proposal.experiencedLevel;
-  const positions = parsePositionDetails(proposal.positionDetails);
-  const positionSummary = summarizePositions(positions);
-
   return (
     <div className="w-full max-w-2xl mx-auto bg-white border border-gray-200 rounded-xl shadow-md p-6 font-sans text-gray-700">
       
@@ -77,93 +72,58 @@ function ProposalDetail({ applicationId, onClose }) {
       <div className="mb-6">
         <div className="text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider">📋 제출 희망 계약 조건</div>
         <div className="grid grid-cols-2 gap-4">
-          {isSangju ? (
-            <>
-              {positions.length > 0 ? (
-                <div className="col-span-2 border border-slate-100 rounded-xl overflow-hidden">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 text-gray-400">
-                      <tr>
-                        <th className="p-3">기술 구분</th>
-                        <th className="p-3">연차 구분</th>
-                        <th className="p-3">인원 수</th>
-                        <th className="p-3">임금</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {positions.map((position, index) => (
-                        <tr key={index} className="border-t border-slate-100">
-                          <td className="p-3 font-semibold">{position.techRole || '-'}</td>
-                          <td className="p-3">{position.experiencedLevel || '-'}</td>
-                          <td className="p-3">{position.memberCount ? `${position.memberCount}명` : '-'}</td>
-                          <td className="p-3">{position.monthlySalary ? `${position.monthlySalary.toLocaleString()}만원` : '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <>
-                  <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
-                    <span className="text-xl">💼</span>
-                    <div>
-                      <div className="text-[11px] text-gray-400">담당 역할</div>
-                      <div className="text-sm font-bold text-gray-800">{proposal.techRole || '-'}</div>
-                    </div>
-                  </div>
-                  <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
-                    <span className="text-xl">🏅</span>
-                    <div>
-                      <div className="text-[11px] text-gray-400">숙련도 등급</div>
-                      <div className="text-sm font-bold text-gray-800">{proposal.experiencedLevel || '-'}</div>
-                    </div>
-                  </div>
-                </>
-              )}
-              <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
-                <span className="text-xl">💰</span>
-                <div>
-                  <div className="text-[11px] text-gray-400">희망 월 급여</div>
-                  <div className="text-sm font-bold text-gray-800">
-                    {(positionSummary.monthlySalary || proposal.monthlySalary) ? `${(positionSummary.monthlySalary || proposal.monthlySalary).toLocaleString()}만원` : '-'}
-                  </div>
-                </div>
+          
+          <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
+            <span className="text-xl">💼</span>
+            <div>
+              <div className="text-[11px] text-gray-400">담당 역할 (techRole)</div>
+              <div className="text-sm font-bold text-gray-800">{proposal.techRole || '미지정'}</div>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
+            <span className="text-xl">🏅</span>
+            <div>
+              <div className="text-[11px] text-gray-400">숙련도 등급 (experiencedLevel)</div>
+              <div className="text-sm font-bold text-gray-800">{proposal.experiencedLevel || '미입력'}</div>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
+            <span className="text-xl">⏳</span>
+            <div>
+              <div className="text-[11px] text-gray-400">투입 가능 기간 (workDuration)</div>
+              <div className="text-sm font-bold text-gray-800">{proposal.workDuration ? `${proposal.workDuration}일` : '-'}</div>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
+            <span className="text-xl">👥</span>
+            <div>
+              <div className="text-[11px] text-gray-400">참여 멤버 수 (memberCount)</div>
+              <div className="text-sm font-bold text-gray-800">{proposal.memberCount ? `${proposal.memberCount}명` : '1명'}</div>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
+            <span className="text-xl">💵</span>
+            <div>
+              <div className="text-[11px] text-gray-400">희망 총 예산 (appliedBudget / 도급)</div>
+              <div className="text-sm font-bold text-orange-600">
+                {proposal.appliedBudget ? `${proposal.appliedBudget.toLocaleString()}원` : '협의'}
               </div>
-              <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
-                <span className="text-xl">👥</span>
-                <div>
-                  <div className="text-[11px] text-gray-400">참여 멤버 수</div>
-                  <div className="text-sm font-bold text-gray-800">{(positionSummary.memberCount || proposal.memberCount) ? `${positionSummary.memberCount || proposal.memberCount}명` : '-'}</div>
-                </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
+            <span className="text-xl">💰</span>
+            <div>
+              <div className="text-[11px] text-gray-400">희망 월 급여 (monthlySalary / 상주)</div>
+              <div className="text-sm font-bold text-gray-800">
+                {proposal.monthlySalary ? `${proposal.monthlySalary.toLocaleString()}원` : '협의'}
               </div>
-            </>
-          ) : (
-            <>
-              <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
-                <span className="text-xl">⏳</span>
-                <div>
-                  <div className="text-[11px] text-gray-400">작업 기간</div>
-                  <div className="text-sm font-bold text-gray-800">{proposal.workDuration ? `${proposal.workDuration}일` : '-'}</div>
-                </div>
-              </div>
-              <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
-                <span className="text-xl">💵</span>
-                <div>
-                  <div className="text-[11px] text-gray-400">제안 금액</div>
-                  <div className="text-sm font-bold text-orange-600">
-                    {proposal.appliedBudget ? `${proposal.appliedBudget.toLocaleString()}만원` : '-'}
-                  </div>
-                </div>
-              </div>
-              <div className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex items-center gap-3">
-                <span className="text-xl">👥</span>
-                <div>
-                  <div className="text-[11px] text-gray-400">참여 멤버 수</div>
-                  <div className="text-sm font-bold text-gray-800">{proposal.memberCount ? `${proposal.memberCount}명` : '1명'}</div>
-                </div>
-              </div>
-            </>
-          )}
+            </div>
+          </div>
 
         </div>
       </div>
