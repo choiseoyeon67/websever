@@ -7,11 +7,15 @@ import org.example.webserver_new.common.error.ErrorCode;
 import org.example.webserver_new.dto.api.ApiDtos.ApplicationResponse;
 import org.example.webserver_new.dto.api.ApiDtos.ProjectRequest;
 import org.example.webserver_new.dto.api.ApiDtos.ProjectResponse;
+import org.example.webserver_new.entity.Application;
 import org.example.webserver_new.entity.Project;
 import org.example.webserver_new.entity.Role;
 import org.example.webserver_new.entity.User;
 import org.example.webserver_new.repository.ApplicationRepository;
 import org.example.webserver_new.repository.ProjectRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -66,6 +70,7 @@ public class ClientApiService {
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND_ENTITY));
     }
 
+    // 2. Controller/Service 수정
     public Map<String, Object> projectApplications(Long projectId, int page, int size, HttpServletRequest request) {
         User user = authApiService.requiredRole(request, Role.CLIENT);
         boolean ownsProject = projectRepository.findById(projectId)
@@ -76,14 +81,22 @@ public class ClientApiService {
             throw new ApiException(ErrorCode.NOT_FOUND_ENTITY);
         }
 
+        // 페이지 번호가 0보다 작으면 0으로 고정 (안전장치)
         int safePage = Math.max(page, 0);
-        int safeSize = size <= 0 ? 2 : size;
-        List<ApplicationResponse> applications = applicationRepository.findByProject_Id(projectId)
-                .stream()
-                .map(ApplicationResponse::from)
-                .toList();
 
-        return paged(applications, safePage, safeSize);
+        // Pageable 객체 생성
+        Pageable pageable = PageRequest.of(safePage, size);
+
+        // Repository에서 Page 객체를 반환하도록 수정
+        Page<Application> applicationPage = applicationRepository.findByProject_Id(projectId, pageable);
+
+        // 응답 구성
+        return Map.of(
+                "content", applicationPage.getContent().stream().map(ApplicationResponse::from).toList(),
+                "last", applicationPage.isLast(),           // 마지막 페이지 여부 (boolean)
+                "totalElements", applicationPage.getTotalElements(), // 전체 데이터 개수
+                "totalPages", applicationPage.getTotalPages()   // 전체 페이지 수
+        );
     }
 
     public ApplicationResponse application(Long applicationId, HttpServletRequest request) {
