@@ -19,11 +19,13 @@ import java.io.IOException;
 public class LoginCheckFilter implements Filter {
 
     private static final String[] whitelist = {
-            "/",
             "/members/add",
             "/login",
             "/logout",
-            "/css/*"
+            "/css/*",
+            "/api/auth/login",
+            "/api/auth/logout",
+            "/api/projects*"
     };
 
     @Override
@@ -46,6 +48,13 @@ public class LoginCheckFilter implements Filter {
                 if (session == null || session.getAttribute(SessionConst.LOGIN_USER) == null) {
                     log.info("미인증 사용자 요청 {}", requestURI);
 
+                    // API 요청인지 확인
+                    if (requestURI.startsWith("/api/")) {
+                        httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 응답
+                        return;
+                    }
+
+                    // 일반 HTML 요청은 리다이렉트
                     httpResponse.sendRedirect("/login?redirectURL=" + requestURI);
                     return;
                 }

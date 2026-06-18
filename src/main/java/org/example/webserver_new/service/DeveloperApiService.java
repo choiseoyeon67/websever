@@ -1,5 +1,7 @@
 package org.example.webserver_new.service;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.example.webserver_new.common.error.ApiException;
@@ -34,6 +36,9 @@ public class DeveloperApiService {
     private final ApplicationRepository applicationRepository;
     private final AuthApiService authApiService;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Value("${app.upload.profile-dir:uploads/profile}")
     private String profileUploadDir;
 
@@ -45,12 +50,16 @@ public class DeveloperApiService {
     public ProfileResponse updateProfile(ProfileRequest request, HttpServletRequest httpRequest) {
         User user = authApiService.requiredRole(httpRequest, Role.DEVELOPER);
 
-        if (hasTooManySearchTags(request.searchTags()))
-        {
+        if (hasTooManySearchTags(request.searchTags())) {
             throw new ApiException(ErrorCode.HAS_TOO_MANY_TAG);
         }
 
+        // 🎯 [핵심] 1단계 이미지 업로드 API가 바꿔놓은 DB 데이터를 온전히 반영하기 위해 1차 캐시를 비웁니다.
+        entityManager.clear();
+
         DevProfile profile = findOrCreateProfile(user);
+
+        // 텍스트 필드만 세팅
         profile.setDevType(request.devType());
         profile.setIsActive(request.isActive());
         profile.setIsResident(request.isResident());
@@ -60,7 +69,9 @@ public class DeveloperApiService {
         profile.setSearchTags(request.searchTags());
         profile.setIntroduction(request.introduction());
 
-        return ProfileResponse.from(devProfileRepository.save(profile));
+        DevProfile savedProfile = devProfileRepository.save(profile);
+
+        return ProfileResponse.from(savedProfile);
     }
 
     public ProfileResponse uploadImage(MultipartFile image, HttpServletRequest request) throws IOException {
@@ -76,7 +87,7 @@ public class DeveloperApiService {
         String fileName = UUID.randomUUID() + extension;
 
         image.transferTo(uploadDir.resolve(fileName));
-        profile.setProfileImageFileName(fileName);
+        profile.setImagePath(fileName);
 
         return ProfileResponse.from(devProfileRepository.save(profile));
     }

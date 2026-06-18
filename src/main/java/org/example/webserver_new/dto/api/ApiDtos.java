@@ -113,9 +113,9 @@ public final class ApiDtos {
             String profileImageUrl
     ) {
         public static ProfileResponse from(DevProfile profile) {
-            String imageUrl = profile.getProfileImageFileName() == null
+            String imageUrl = profile.getImagePath() == null
                     ? null
-                    : "/uploads/profile/" + profile.getProfileImageFileName();
+                    : "http://localhost:8080/uploads/profile/" + profile.getImagePath();
 
             return new ProfileResponse(
                     profile.getId(),

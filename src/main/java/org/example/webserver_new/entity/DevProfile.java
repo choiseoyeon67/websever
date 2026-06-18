@@ -7,6 +7,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@Table(name = "dev_profile")
 public class DevProfile
 {
     @Id
@@ -18,6 +19,7 @@ public class DevProfile
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
+    @JoinColumn(name = "image_path")
     private String imagePath;
     private String devType;
     private Boolean isActive;
@@ -27,5 +29,4 @@ public class DevProfile
     private Integer careerYears;
     private String searchTags;
     private String introduction;
-    private String profileImageFileName;
 }
