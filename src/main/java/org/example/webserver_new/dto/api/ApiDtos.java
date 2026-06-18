@@ -142,6 +142,7 @@ public final class ApiDtos {
             String experiencedLevel,
             Integer memberCount,
             Integer monthlySalary,
+            String positionDetails,
             String contents
     ) {
     }
@@ -156,6 +157,7 @@ public final class ApiDtos {
             String experiencedLevel,
             Integer memberCount,
             Integer monthlySalary,
+            String positionDetails,
             String contents,
             LocalDateTime createdAt
     ) {
@@ -170,6 +172,7 @@ public final class ApiDtos {
                     application.getExperiencedLevel(),
                     application.getMemberCount(),
                     application.getMonthlySalary(),
+                    application.getPositionDetails(),
                     application.getContents(),
                     application.getCreatedAt()
             );

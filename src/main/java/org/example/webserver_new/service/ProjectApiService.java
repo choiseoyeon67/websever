@@ -60,7 +60,7 @@ public class ProjectApiService {
 
     public ApplicationResponse apply(Long projectId, HttpServletRequest request) {
         ApplicationRequest defaultRequest = new ApplicationRequest(
-                null, null, null, null, null, null, "지원서가 제출되었습니다."
+                null, null, null, null, null, null, null, "지원서가 제출되었습니다."
         );
 
         return submitApplication(projectId, defaultRequest, request);
@@ -97,6 +97,7 @@ public class ProjectApiService {
         application.setExperiencedLevel(applicationRequest.experiencedLevel());
         application.setMemberCount(applicationRequest.memberCount());
         application.setMonthlySalary(applicationRequest.monthlySalary());
+        application.setPositionDetails(applicationRequest.positionDetails());
         application.setContents(applicationRequest.contents());
 
         return ApplicationResponse.from(applicationRepository.save(application));

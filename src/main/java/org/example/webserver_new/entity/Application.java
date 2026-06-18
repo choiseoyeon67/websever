@@ -39,6 +39,8 @@ public class Application
     private Integer memberCount;
     @Column(nullable = true)
     private Integer monthlySalary;
+    @Column(columnDefinition = "TEXT", nullable = true)
+    private String positionDetails;
 
     //공통 지원 내용
     private String contents;
